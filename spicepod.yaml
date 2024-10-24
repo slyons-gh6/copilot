@@ -1,8 +1,50 @@
-name: copilot
-kind: Spicepod
 version: v1beta1
+kind: Spicepod
+name: spicepod-graphql-spicehq-decisions
 
 datasets:
+  - from: github:github.com/spiceai/spiceai/files/trunk
+    name: spiceai.files
+    description: File contents from the Spice.ai repository
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+      include: '**/*'
+    acceleration:
+      enabled: true
+    embeddings:
+      - column: content
+        column_pk:
+          - path
+        use: hf_minilm
+        chunking:
+          enabled: true
+          target_chunk_size: 512
+          overlap_size: 128
+          trim_whitespace: true
+  
+  - from: github:github.com/spiceai/docs/files/trunk
+    name: spiceai.docs
+    description: File contents from the Spice.ai documentation repository
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+      include: '**/*.md'
+    acceleration:
+      enabled: true
+    embeddings:
+      - column: content
+        column_pk:
+          - path
+        use: hf_minilm
+        chunking:
+          enabled: true
+          target_chunk_size: 512
+          overlap_size: 128
+          trim_whitespace: true
+
   - from: github:github.com/spiceai/spiceai/issues
     name: spiceai.issues
     description: Spice.ai OSS issues from https://github.com/spiceai/spiceai/issues
@@ -12,11 +54,13 @@ datasets:
       github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
     acceleration:
       enabled: true
+      refresh_sql: |
+        SELECT * FROM spiceai.issues WHERE created_at >= now() - interval '1 month' ORDER by created_at desc
     embeddings:
       - column: title
         column_pk:
           - id
-        use: openai_embeddings
+        use: hf_minilm
         chunking:
           enabled: true
           target_chunk_size: 512
@@ -32,16 +76,50 @@ datasets:
       github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
     acceleration:
       enabled: true
+      refresh_sql: |
+        SELECT * FROM spiceai.pulls WHERE created_at >= now() - interval '1 month' ORDER by created_at desc
     embeddings:
       - column: title
         column_pk:
           - id
-        use: openai_embeddings
+        use: hf_minilm
         chunking:
           enabled: true
           target_chunk_size: 512
           overlap_size: 128
           trim_whitespace: true
+
+  - from: github:github.com/spiceai/spiceai/commits
+    name: spiceai.commits
+    description: Spice.ai OSS commits from https://github.com/spiceai/spiceai/commits
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+    acceleration:
+      enabled: true
+      refresh_sql: |
+        SELECT * FROM spiceai.commits WHERE committed_date >= now() - interval '1 month' ORDER by committed_date desc
+    embeddings:
+      - column: message
+        column_pk:
+          - id
+        use: hf_minilm
+
+  - from: github:github.com/spiceai/spiceai/stargazers
+    name: spiceai.stargazers
+    description: Users who have starred the Spice.ai repository
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+    acceleration:
+      enabled: true
+      refresh_sql: |
+        SELECT * FROM spiceai.stargazers ORDER by starred_at desc
+    embeddings:
+      - column: login
+        use: hf_minilm
 
 embeddings:
   - from: openai
