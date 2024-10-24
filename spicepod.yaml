@@ -29,7 +29,7 @@ datasets:
       enabled: true
 
   - from: github:github.com/facebook/react/pulls
-    name: react.issues
+    name: react.pulls
     description: React.js GitHub pull requests from github.com/facebook/react
     params:
       github_client_id: ${secrets:GITHUB_CLIENT_ID}
