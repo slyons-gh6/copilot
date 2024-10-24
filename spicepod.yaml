@@ -3,6 +3,67 @@ kind: Spicepod
 name: spicepod-graphql-spicehq-decisions
 
 datasets:
+  - from: github:github.com/reactjs/react.dev/files/main
+    name: react.docs
+    description: File contents for the React.JS documentation repository
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+      include: '**/*'
+    acceleration:
+      enabled: true
+    embeddings:
+      - column: content
+        column_pk:
+          - path
+        use: openai_embeddings
+        chunking:
+          enabled: true
+          target_chunk_size: 512
+          overlap_size: 128
+          trim_whitespace: true
+  - from: github:github.com/tailwindlabs/tailwindcss.com/files/master
+    name: tailwind.docs
+    description: File contents for the Tailwind documentation repository
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+      include: '**/*'
+    acceleration:
+      enabled: true
+    embeddings:
+      - column: content
+        column_pk:
+          - path
+        use: openai_embeddings
+        chunking:
+          enabled: true
+          target_chunk_size: 512
+          overlap_size: 128
+          trim_whitespace: true
+  - from: github:github.com/facebook/react/issues
+    name: react.issues
+    description: Issues from https://github.com/facebook/react/issues
+    params:
+      github_client_id: ${secrets:GITHUB_CLIENT_ID}
+      github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
+      github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
+    acceleration:
+      enabled: true
+      refresh_sql: |
+        SELECT * FROM react.issues WHERE created_at >= now() - interval '1 month' ORDER by created_at desc
+    embeddings:
+      - column: title
+        column_pk:
+          - id
+        use: openai_embeddings
+        chunking:
+          enabled: true
+          target_chunk_size: 512
+          overlap_size: 128
+          trim_whitespace: true
   - from: github:github.com/spiceai/spiceai/files/trunk
     name: spiceai.files
     description: File contents from the Spice.ai repository
