@@ -30,7 +30,7 @@ datasets:
       github_client_id: ${secrets:GITHUB_CLIENT_ID}
       github_private_key: ${secrets:GITHUB_PRIVATE_KEY}
       github_installation_id: ${secrets:GITHUB_INSTALLATION_ID}
-      include: '**/*'
+      include: 'src/*.mdx'
     acceleration:
       enabled: true
     embeddings:
